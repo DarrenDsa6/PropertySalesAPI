@@ -17,6 +17,7 @@ public class PropertyController : ControllerBase
 
     private readonly PropertySalesDbContext _context; // Replace with your actual DbContext
     private readonly string _storagePath;
+    private readonly string _imageBasePath;
 
     public PropertyController(PropertySalesDbContext context, IConfiguration configuration)
     {
@@ -25,6 +26,7 @@ public class PropertyController : ControllerBase
         var uploadsFolder = configuration["ImageStorage:Path"];
         _storagePath = Path.Combine(Directory.GetCurrentDirectory(), uploadsFolder);
 
+        _imageBasePath = configuration["ImageStorage:Path"];
         // Ensure the directory exists
         if (!Directory.Exists(_storagePath))
         {
@@ -49,7 +51,7 @@ public class PropertyController : ControllerBase
             Description = request.Description,
             Amenities = request.Amenities,
             Status = request.Status,
-            AddedBy = request.UserId,
+            AddedBy = request.AddedBy,
             PropertyImages = new List<PropertyImage>()
         };
 
@@ -179,5 +181,31 @@ public class PropertyController : ControllerBase
         _context.Properties.Remove(property);
         await _context.SaveChangesAsync();
         return Ok(property);
+    }
+
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPropertiesByUserId(int id)
+    {
+        var properties = await _context.Properties
+            .Where(p => p.AddedBy == id)
+            .Include(p => p.PropertyImages)
+            .ToListAsync();
+
+        if (properties?.Count == 0)
+        {
+            return NotFound($"No properties added by the user with id:{id}");
+        }
+
+        // Handle image paths for each property
+        foreach (var property in properties)
+        {
+            foreach (var image in property.PropertyImages)
+            {
+                image.FilePath = image.FilePath
+                    .Replace(Path.Combine(Directory.GetCurrentDirectory(), _imageBasePath) + "\\", "/Uploads/");
+            }
+        }
+        return Ok(properties);
     }
 }

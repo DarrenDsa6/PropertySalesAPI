@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 public class PropertyUploadRequest
 {
-    public int UserId { get; set; } // Aadhaar card number as long
+    public int AddedBy { get; set; } 
 
     public PropertyType PropertyType { get; set; }
     public string Location { get; set; }

@@ -6,6 +6,7 @@ namespace PropertySales.Models.Domain
 {
     public class Property
     {
+        //This is the primary key
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int PropertyId { get; set; }
